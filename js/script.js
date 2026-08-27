@@ -112,32 +112,12 @@ function cardPlayerClick(card) {
     (cardNum === 13 && field1Num === 1)
   ) //cardNumが13かつ、field1Numが1である場合
   {
+    console.log("プレイヤーの手札から出した:", card.textContent, "→ field1[" , topField1Card.textContent , "]へ");
     topField1Card.textContent = card.textContent; //場のカードを手札のカードで上書きし
     bothCheck();
     card.remove(); //cardを削除
 
-    const newPlayerCard = playerDeckCards.shift(); //手札のカードを補充する
-
-    const newPlayerCardDraw = document.createElement("button"); //手札カードを生成し、ボタンを追加
-    newPlayerCardDraw.textContent = newPlayerCard;
-
-    const playerHandArea = document.querySelector("#player-hand"); //手札にカードを追加する
-    playerHandArea.appendChild(newPlayerCardDraw);
-
-    newPlayerCardDraw.addEventListener("click", () => {
-      //クリックし手札カードを生成し、ボタンを追加
-      cardPlayerClick(newPlayerCardDraw);
-    });
-  } else if (
-    Math.abs(cardNum - field2Num) === 1 || //引数cardNumとfield2Numの差の絶対値を求め、その値が1と等しいか、または
-    (cardNum === 1 && field2Num === 13) || //cardNumが1かつ、field2Numが13、または
-    (cardNum === 13 && field2Num === 1)
-  ) //cardNumが13かつ、field2Numが1である場合
-  {
-    topField2Card.textContent = card.textContent; //場のカードを手札のカードで上書きし
-    bothCheck();
-    card.remove(); //cardを削除
-
+    if(playerDeckCards.length > 0) {
     const newPlayerCard = playerDeckCards.shift(); //手札のカードを補充する
 
     const newPlayerCardDraw = document.createElement("button"); //手札カードを生成し、ボタンを追加
@@ -151,6 +131,33 @@ function cardPlayerClick(card) {
       cardPlayerClick(newPlayerCardDraw);
     });
   }
+
+  } else if (
+    Math.abs(cardNum - field2Num) === 1 || //引数cardNumとfield2Numの差の絶対値を求め、その値が1と等しいか、または
+    (cardNum === 1 && field2Num === 13) || //cardNumが1かつ、field2Numが13、または
+    (cardNum === 13 && field2Num === 1)
+  ) //cardNumが13かつ、field2Numが1である場合
+  {
+    console.log("プレイヤーの手札から出した:", card.textContent, "→ field2[" ,topField2Card.textContent, "]へ");
+    topField2Card.textContent = card.textContent; //場のカードを手札のカードで上書きし
+    bothCheck();
+    card.remove(); //cardを削除
+
+    if(playerDeckCards.length > 0) {
+    const newPlayerCard = playerDeckCards.shift(); //手札のカードを補充する
+
+    const newPlayerCardDraw = document.createElement("button"); //手札カードを生成し、ボタンを追加
+    newPlayerCardDraw.textContent = newPlayerCard;
+
+    const playerHandArea = document.querySelector("#player-hand"); //手札にカードを追加する
+    playerHandArea.appendChild(newPlayerCardDraw);
+
+    newPlayerCardDraw.addEventListener("click", () => {
+      //クリックし手札カードを生成し、ボタンを追加
+      cardPlayerClick(newPlayerCardDraw);
+    });
+  }
+}
 }
 
 /*クリックしたときの関数(CPU)
@@ -170,10 +177,12 @@ function cardCpuClick(card) {
     (cardNum === 13 && field1Num === 1)
   ) //cardNumが13かつ、field1Numが1である場合
   {
+    console.log("CPUの手札から出した:",card.textContent,"→ field1[" , topField1Card.textContent , "]へ",);
     topField1Card.textContent = card.textContent; //場のカードを手札のカードで上書きし
     bothCheck();
     card.remove(); //cardを削除
 
+    if(cpuDeckCards.length > 0) {
     const newCpuCard = cpuDeckCards.shift(); //手札のカードを補充する
 
     const newCpuCardDraw = document.createElement("button"); //手札カードを生成し、ボタンを追加
@@ -186,16 +195,20 @@ function cardCpuClick(card) {
       //クリックし手札カードを生成し、ボタンを追加
       cardCpuClick(newCpuCardDraw);
     });
+  }
+
   } else if (
     Math.abs(cardNum - field2Num) === 1 || //引数cardNumとfield2Numの差の絶対値を求め、その値が1と等しいか、または
     (cardNum === 1 && field2Num === 13) || //cardNumが1かつ、field2Numが13、または
     //cardNumが13かつ、field2Numが1である場合
     (cardNum === 13 && field2Num === 1)
   ) {
+    console.log("CPUの手札から出した:",card.textContent,"→ field2[" ,topField2Card.textContent, "]へ",);
     topField2Card.textContent = card.textContent; //場のカードを手札のカードで上書きし
     bothCheck();
     card.remove(); //cardを削除
 
+    if(cpuDeckCards.length > 0) {
     const newCpuCard = cpuDeckCards.shift(); //手札のカードを補充する
 
     const newCpuCardDraw = document.createElement("button"); //手札カードを生成し、ボタンを追加
@@ -208,6 +221,7 @@ function cardCpuClick(card) {
       //クリックし手札カードを生成し、ボタンを追加
       cardCpuClick(newCpuCardDraw);
     });
+  }
   }
 }
 
@@ -261,20 +275,25 @@ function canCpuPlay() {
   return canPlay;
 }
 
-function bothCheck(){
-  if(!canPlayerPlay() && !canCpuPlay()){
+function bothCheck() {
+  if (!canPlayerPlay() && !canCpuPlay()) {
     const currentField1 = document.querySelectorAll("#field-1 button");
     const currentField2 = document.querySelectorAll("#field-2 button");
     const topField1Card = currentField1[currentField1.length - 1];
     const topField2Card = currentField2[currentField2.length - 1];
-    console.log("お互いなし")
-    const forced1Card = playerDeckCards.shift();
-    const forced2Card = cpuDeckCards.shift();
-    topField1Card.textContent = forced2Card;
-    topField2Card.textContent = forced1Card;
-  console.log("なし");
+    console.log("お互いなし");
+    if (playerDeckCards.length > 0) {
+      const forced1Card = playerDeckCards.shift();
+      console.log("プレイヤーの山札から出した:", forced1Card, "→ field2へ");
+      topField2Card.textContent = forced1Card;
+      // console.log("なし");
+    }
+    if (cpuDeckCards.length > 0) {
+      const forced2Card = cpuDeckCards.shift();
+      topField1Card.textContent = forced2Card;
+      console.log("CPUの山札から出した:", forced2Card, "→ field1へ");
+    }
   } else {
-    console.log("あり")
+    console.log("あり");
   }
 }
-
