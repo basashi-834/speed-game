@@ -8,7 +8,8 @@ for (let i = 0; i < 4; i++) {
   }
 }
 
-//52枚のカードをランダムにシャッフルする
+let draggedCard = null;
+
 for (let i = deck.length - 1; i >= 0; i--) {
   const j = Math.floor(Math.random() * (i + 1));
   let tmp = deck[i];
@@ -16,82 +17,99 @@ for (let i = deck.length - 1; i >= 0; i--) {
   deck[j] = tmp;
 }
 
-//シャッフルした52枚のカードをプレイヤーとCPUに分配する
-const playerCards = deck.slice(0, 26);
-const cpuCards = deck.slice(26);
+const playerDeckCards = deck.slice(0, 26);
+const cpuDeckCards = deck.slice(26);
 
-/*26枚の束から先頭の1枚を場に出す
-========================================================================================== */
-const playerFieldCard = playerCards.shift();
-const cpuFieldCard = cpuCards.shift();
+const playerFieldCard = playerDeckCards.shift();
+const cpuFieldCard = cpuDeckCards.shift();
 
-//分けたカードを手札と自分の山札に分ける(プレイヤー)
-const playerHandCards = playerCards.slice(0, 4);
-const playerDeckCards = playerCards.slice(4);
+while (playerDeckCards.length > 0 && document.querySelectorAll("#player-hand button").length < 4) {
+  const playerHandCard = playerDeckCards.shift();
+  const currentPlayerHands = Array.from(document.querySelectorAll("#player-hand button"));
+  const matchedCard = currentPlayerHands.find((handCard) => {
+    return Number(handCard.textContent) === playerHandCard;
+  });
 
-//分けたカードを手札と自分の山札に分ける(CPU)
-const cpuHandCards = cpuCards.slice(0, 4);
-const cpuDeckCards = cpuCards.slice(4);
+  if (matchedCard) {
+    matchedCard.dataset.count = Number(matchedCard.dataset.count) + 1;
+    matchedCard.classList.add("stacked");
+  } else {
+    const newPlayerCardDraw = document.createElement("button");
+    newPlayerCardDraw.textContent = playerHandCard;
+    newPlayerCardDraw.dataset.count = 1;
+    newPlayerCardDraw.draggable = true;
 
-/*手札カードを生成し、カードボタンをHTMLに追加し、4枚表示(プレイヤー)
-========================================================================================== */
-for (let i = 0; i < playerHandCards.length; i++) {
-  const newButton = document.createElement("button");
-  newButton.textContent = playerHandCards[i];
+    const playerHandArea = document.querySelector("#player-hand");
+    playerHandArea.appendChild(newPlayerCardDraw);
+    newPlayerCardDraw.addEventListener("click", () => {
+      cardPlayerClick(newPlayerCardDraw);
+    });
 
-  const playerHandArea = document.querySelector("#player-hand");
-  playerHandArea.appendChild(newButton);
+    newPlayerCardDraw.addEventListener("dragstart", () => {
+      draggedCard = newPlayerCardDraw;
+    });
+  }
 }
 
-//手札のカードボタンを取得している
-const playerHands = document.querySelectorAll("#player-hand button");
-
-//場2のカードボタンを作っている
 const newField2Button = document.createElement("button");
 newField2Button.textContent = playerFieldCard;
 
 const field2Area = document.querySelector("#field-2");
 field2Area.appendChild(newField2Button);
 
-//場2のカードボタンを取得している
-const field2Cards = document.querySelectorAll("#field-2 button");
-
-//手札のカードのクリックしたときの動作(プレイヤー)
-playerHands.forEach((card) => {
-  card.addEventListener("click", () => {
-    cardPlayerClick(card);
-  });
+document.querySelector("#field-2").addEventListener("dragover", (event) => {
+  event.preventDefault();
+});
+document.querySelector("#field-2").addEventListener("drop", (event) => {
+  event.preventDefault();
+  handleDrop(2);
 });
 
-/*手札カードを生成し、カードボタンをHTMLに追加し、4枚表示(CPU)
-========================================================================================== */
-for (let i = 0; i < cpuHandCards.length; i++) {
-  const newCpuButton = document.createElement("button");
-  newCpuButton.textContent = cpuHandCards[i];
+const field2Cards = document.querySelectorAll("#field-2 button");
 
-  const cpuHandArea = document.querySelector("#cpu-hand");
-  cpuHandArea.appendChild(newCpuButton);
+while (cpuDeckCards.length > 0 && document.querySelectorAll("#cpu-hand button").length < 4) {
+  const cpuHandCard = cpuDeckCards.shift();
+  const currentCpuHands = Array.from(document.querySelectorAll("#cpu-hand button"));
+  const matchedCard = currentCpuHands.find((handCard) => {
+    return Number(handCard.textContent) === cpuHandCard;
+  });
+
+  if (matchedCard) {
+    matchedCard.dataset.count = Number(matchedCard.dataset.count) + 1;
+    matchedCard.classList.add("stacked");
+  } else {
+    const newCpuCardDraw = document.createElement("button");
+    newCpuCardDraw.textContent = cpuHandCard;
+    newCpuCardDraw.dataset.count = 1;
+    newCpuCardDraw.draggable = true;
+
+    const cpuHandArea = document.querySelector("#cpu-hand");
+    cpuHandArea.appendChild(newCpuCardDraw);
+    newCpuCardDraw.addEventListener("click", () => {
+      cardCpuClick(newCpuCardDraw);
+    });
+
+    newCpuCardDraw.addEventListener("dragstart", () => {
+      draggedCard = newCpuCardDraw;
+    });
+  }
 }
 
-//手札のカードボタンを取得している
-const cpuHands = document.querySelectorAll("#cpu-hand button");
-
-//場1のカードボタンを作っている
 const newField1Button = document.createElement("button");
 newField1Button.textContent = cpuFieldCard;
 
 const field1Area = document.querySelector("#field-1");
 field1Area.appendChild(newField1Button);
 
-//場1のカードボタンを取得している
-const field1Cards = document.querySelectorAll("#field-1 button");
-
-//手札のカードのクリックしたときの動作(CPU)
-cpuHands.forEach((card) => {
-  card.addEventListener("click", () => {
-    cardCpuClick(card);
-  });
+document.querySelector("#field-1").addEventListener("dragover", (event) => {
+  event.preventDefault();
 });
+document.querySelector("#field-1").addEventListener("drop", (event) => {
+  event.preventDefault();
+  handleDrop(1);
+});
+
+const field1Cards = document.querySelectorAll("#field-1 button");
 
 bothCheck();
 
@@ -107,57 +125,86 @@ function cardPlayerClick(card) {
   const field2Num = Number(topField2Card.textContent);
 
   if (
-    Math.abs(cardNum - field1Num) === 1 || //引数cardNumとfield1Numの差の絶対値を求め、その値が1と等しいか、または
-    (cardNum === 1 && field1Num === 13) || //cardNumが1かつ、field1Numが13、または
+    Math.abs(cardNum - field1Num) === 1 ||
+    (cardNum === 1 && field1Num === 13) ||
     (cardNum === 13 && field1Num === 1)
-  ) //cardNumが13かつ、field1Numが1である場合
-  {
-    console.log("プレイヤーの手札から出した:", card.textContent, "→ field1[" , topField1Card.textContent , "]へ");
-    topField1Card.textContent = card.textContent; //場のカードを手札のカードで上書きし
+  ) {
+    const message = document.querySelector("#message");
+    message.textContent = `プレイヤーの手札から出した: ${card.textContent} → field1[${topField1Card.textContent}]へ`;
+    topField1Card.textContent = card.textContent;
     bothCheck();
-    card.remove(); //cardを削除
 
-    if(playerDeckCards.length > 0) {
-    const newPlayerCard = playerDeckCards.shift(); //手札のカードを補充する
+    card.remove();
 
-    const newPlayerCardDraw = document.createElement("button"); //手札カードを生成し、ボタンを追加
-    newPlayerCardDraw.textContent = newPlayerCard;
+    while (playerDeckCards.length > 0 && document.querySelectorAll("#player-hand button").length < 4) {
+      const currentPlayerHands = Array.from(document.querySelectorAll("#player-hand button"));
+      const newPlayerCard = playerDeckCards.shift();
 
-    const playerHandArea = document.querySelector("#player-hand"); //手札にカードを追加する
-    playerHandArea.appendChild(newPlayerCardDraw);
+      const matchedCard = currentPlayerHands.find((handCard) => {
+        return Number(handCard.textContent) === newPlayerCard;
+      });
 
-    newPlayerCardDraw.addEventListener("click", () => {
-      //クリックし手札カードを生成し、ボタンを追加
-      cardPlayerClick(newPlayerCardDraw);
-    });
-  }
+      if (matchedCard) {
+        matchedCard.dataset.count = Number(matchedCard.dataset.count) + 1;
+        matchedCard.classList.add("stacked");
+      } else {
+        const newPlayerCardDraw = document.createElement("button");
+        newPlayerCardDraw.textContent = newPlayerCard;
+        newPlayerCardDraw.dataset.count = 1;
+        newPlayerCardDraw.draggable = true;
 
+        const playerHandArea = document.querySelector("#player-hand");
+        playerHandArea.appendChild(newPlayerCardDraw);
+        newPlayerCardDraw.addEventListener("click", () => {
+          cardPlayerClick(newPlayerCardDraw);
+        });
+
+        newPlayerCardDraw.addEventListener("dragstart", () => {
+          draggedCard = newPlayerCardDraw;
+        });
+      }
+    }
   } else if (
-    Math.abs(cardNum - field2Num) === 1 || //引数cardNumとfield2Numの差の絶対値を求め、その値が1と等しいか、または
-    (cardNum === 1 && field2Num === 13) || //cardNumが1かつ、field2Numが13、または
+    Math.abs(cardNum - field2Num) === 1 ||
+    (cardNum === 1 && field2Num === 13) ||
     (cardNum === 13 && field2Num === 1)
-  ) //cardNumが13かつ、field2Numが1である場合
-  {
-    console.log("プレイヤーの手札から出した:", card.textContent, "→ field2[" ,topField2Card.textContent, "]へ");
-    topField2Card.textContent = card.textContent; //場のカードを手札のカードで上書きし
+  ) {
+    const message = document.querySelector("#message");
+    message.textContent = `プレイヤーの手札から出した: ${card.textContent} → field2[${topField2Card.textContent}]へ`;
+    topField2Card.textContent = card.textContent;
     bothCheck();
-    card.remove(); //cardを削除
 
-    if(playerDeckCards.length > 0) {
-    const newPlayerCard = playerDeckCards.shift(); //手札のカードを補充する
+    card.remove();
 
-    const newPlayerCardDraw = document.createElement("button"); //手札カードを生成し、ボタンを追加
-    newPlayerCardDraw.textContent = newPlayerCard;
+    while (playerDeckCards.length > 0 && document.querySelectorAll("#player-hand button").length < 4) {
+      const currentPlayerHands = Array.from(document.querySelectorAll("#player-hand button"));
+      const newPlayerCard = playerDeckCards.shift();
 
-    const playerHandArea = document.querySelector("#player-hand"); //手札にカードを追加する
-    playerHandArea.appendChild(newPlayerCardDraw);
+      const matchedCard = currentPlayerHands.find((handCard) => {
+        return Number(handCard.textContent) === newPlayerCard;
+      });
 
-    newPlayerCardDraw.addEventListener("click", () => {
-      //クリックし手札カードを生成し、ボタンを追加
-      cardPlayerClick(newPlayerCardDraw);
-    });
+      if (matchedCard) {
+        matchedCard.dataset.count = Number(matchedCard.dataset.count) + 1;
+        matchedCard.classList.add("stacked");
+      } else {
+        const newPlayerCardDraw = document.createElement("button");
+        newPlayerCardDraw.textContent = newPlayerCard;
+        newPlayerCardDraw.dataset.count = 1;
+        newPlayerCardDraw.draggable = true;
+
+        const playerHandArea = document.querySelector("#player-hand");
+        playerHandArea.appendChild(newPlayerCardDraw);
+        newPlayerCardDraw.addEventListener("click", () => {
+          cardPlayerClick(newPlayerCardDraw);
+        });
+
+        newPlayerCardDraw.addEventListener("dragstart", () => {
+          draggedCard = newPlayerCardDraw;
+        });
+      }
+    }
   }
-}
 }
 
 /*クリックしたときの関数(CPU)
@@ -172,56 +219,85 @@ function cardCpuClick(card) {
   const field2Num = Number(topField2Card.textContent);
 
   if (
-    Math.abs(cardNum - field1Num) === 1 || //引数cardNumとfield1Numの差の絶対値を求め、その値が1と等しいか、または
-    (cardNum === 1 && field1Num === 13) || //cardNumが1かつ、field1Numが13、または
+    Math.abs(cardNum - field1Num) === 1 ||
+    (cardNum === 1 && field1Num === 13) ||
     (cardNum === 13 && field1Num === 1)
-  ) //cardNumが13かつ、field1Numが1である場合
-  {
-    console.log("CPUの手札から出した:",card.textContent,"→ field1[" , topField1Card.textContent , "]へ",);
-    topField1Card.textContent = card.textContent; //場のカードを手札のカードで上書きし
+  ) {
+    const message = document.querySelector("#message");
+    message.textContent = `CPUの手札から出した: ${card.textContent} → field1[${topField1Card.textContent}]へ`;
+    topField1Card.textContent = card.textContent;
     bothCheck();
-    card.remove(); //cardを削除
 
-    if(cpuDeckCards.length > 0) {
-    const newCpuCard = cpuDeckCards.shift(); //手札のカードを補充する
+    card.remove();
 
-    const newCpuCardDraw = document.createElement("button"); //手札カードを生成し、ボタンを追加
-    newCpuCardDraw.textContent = newCpuCard;
+    while (cpuDeckCards.length > 0 && document.querySelectorAll("#cpu-hand button").length < 4) {
+      const currentCpuHands = Array.from(document.querySelectorAll("#cpu-hand button"));
+      const newCpuCard = cpuDeckCards.shift();
 
-    const cpuHandArea = document.querySelector("#cpu-hand"); //手札にカードを追加する
-    cpuHandArea.appendChild(newCpuCardDraw);
+      const matchedCard = currentCpuHands.find((handCard) => {
+        return Number(handCard.textContent) === newCpuCard;
+      });
 
-    newCpuCardDraw.addEventListener("click", () => {
-      //クリックし手札カードを生成し、ボタンを追加
-      cardCpuClick(newCpuCardDraw);
-    });
-  }
+      if (matchedCard) {
+        matchedCard.dataset.count = Number(matchedCard.dataset.count) + 1;
+        matchedCard.classList.add("stacked");
+      } else {
+        const newCpuCardDraw = document.createElement("button");
+        newCpuCardDraw.textContent = newCpuCard;
+        newCpuCardDraw.dataset.count = 1;
+        newCpuCardDraw.draggable = true;
 
+        const cpuHandArea = document.querySelector("#cpu-hand");
+        cpuHandArea.appendChild(newCpuCardDraw);
+        newCpuCardDraw.addEventListener("click", () => {
+          cardCpuClick(newCpuCardDraw);
+        });
+
+        newCpuCardDraw.addEventListener("dragstart", () => {
+          draggedCard = newCpuCardDraw;
+        });
+      }
+    }
   } else if (
-    Math.abs(cardNum - field2Num) === 1 || //引数cardNumとfield2Numの差の絶対値を求め、その値が1と等しいか、または
-    (cardNum === 1 && field2Num === 13) || //cardNumが1かつ、field2Numが13、または
-    //cardNumが13かつ、field2Numが1である場合
+    Math.abs(cardNum - field2Num) === 1 ||
+    (cardNum === 1 && field2Num === 13) ||
     (cardNum === 13 && field2Num === 1)
   ) {
-    console.log("CPUの手札から出した:",card.textContent,"→ field2[" ,topField2Card.textContent, "]へ",);
-    topField2Card.textContent = card.textContent; //場のカードを手札のカードで上書きし
+    const message = document.querySelector("#message");
+    message.textContent = `CPUの手札から出した: ${card.textContent} → field2[${topField2Card.textContent}]へ`;
+    topField2Card.textContent = card.textContent;
     bothCheck();
-    card.remove(); //cardを削除
 
-    if(cpuDeckCards.length > 0) {
-    const newCpuCard = cpuDeckCards.shift(); //手札のカードを補充する
+    card.remove();
 
-    const newCpuCardDraw = document.createElement("button"); //手札カードを生成し、ボタンを追加
-    newCpuCardDraw.textContent = newCpuCard;
+    while (cpuDeckCards.length > 0 && document.querySelectorAll("#cpu-hand button").length < 4) {
+      const currentCpuHands = Array.from(document.querySelectorAll("#cpu-hand button"));
+      const newCpuCard = cpuDeckCards.shift();
 
-    const cpuHandArea = document.querySelector("#cpu-hand");
-    cpuHandArea.appendChild(newCpuCardDraw);
+      const matchedCard = currentCpuHands.find((handCard) => {
+        return Number(handCard.textContent) === newCpuCard;
+      });
 
-    newCpuCardDraw.addEventListener("click", () => {
-      //クリックし手札カードを生成し、ボタンを追加
-      cardCpuClick(newCpuCardDraw);
-    });
-  }
+      if (matchedCard) {
+        matchedCard.dataset.count = Number(matchedCard.dataset.count) + 1;
+        matchedCard.classList.add("stacked");
+      } else {
+        const newCpuCardDraw = document.createElement("button");
+        newCpuCardDraw.textContent = newCpuCard;
+        newCpuCardDraw.dataset.count = 1;
+        newCpuCardDraw.draggable = true;
+
+        const cpuHandArea = document.querySelector("#cpu-hand");
+        cpuHandArea.appendChild(newCpuCardDraw);
+        newCpuCardDraw.addEventListener("click", () => {
+          cardCpuClick(newCpuCardDraw);
+        });
+
+        newCpuCardDraw.addEventListener("dragstart", () => {
+          draggedCard = newCpuCardDraw;
+        });
+      }
+    }
   }
 }
 
@@ -281,19 +357,84 @@ function bothCheck() {
     const currentField2 = document.querySelectorAll("#field-2 button");
     const topField1Card = currentField1[currentField1.length - 1];
     const topField2Card = currentField2[currentField2.length - 1];
-    console.log("お互いなし");
+
+    let messageText = "お互いなし";
+
     if (playerDeckCards.length > 0) {
       const forced1Card = playerDeckCards.shift();
-      console.log("プレイヤーの山札から出した:", forced1Card, "→ field2へ");
       topField2Card.textContent = forced1Card;
-      // console.log("なし");
+      messageText += `プレイヤーの山札から${forced1Card}をfield2へ`;
     }
     if (cpuDeckCards.length > 0) {
       const forced2Card = cpuDeckCards.shift();
       topField1Card.textContent = forced2Card;
-      console.log("CPUの山札から出した:", forced2Card, "→ field1へ");
+      messageText += `CPUの山札から${forced2Card}をfield1へ`;
     }
-  } else {
-    console.log("あり");
+
+    const message = document.querySelector("#message");
+    message.textContent = messageText;
   }
+}
+
+/*ドロップされたときの共通処理
+========================================================================================== */
+function handleDrop(fieldNum) {
+  if (!draggedCard) return;
+
+  const currentFieldCards = fieldNum === 1 ? field1Cards : field2Cards;
+  const topFieldCard = currentFieldCards[currentFieldCards.length - 1];
+  const topFieldNum = Number(topFieldCard.textContent);
+
+  const isPlayer = draggedCard.closest("#player-hand") ? true : false;
+  const cardNum = Number(draggedCard.textContent);
+
+  if (
+    Math.abs(cardNum - topFieldNum) === 1 ||
+    (cardNum === 1 && topFieldNum === 13) ||
+    (cardNum === 13 && topFieldNum === 1)
+  ) {
+    const whoText = isPlayer ? "プレイヤー" : "CPU";
+    const message = document.querySelector("#message");
+    message.textContent = `${whoText}の手札から出した: ${draggedCard.textContent} → field${fieldNum}[${topFieldCard.textContent}]へ`;
+    topFieldCard.textContent = draggedCard.textContent;
+    bothCheck();
+
+    draggedCard.remove();
+
+    const currentDeckCards = isPlayer ? playerDeckCards : cpuDeckCards;
+    const currentHandSelector = isPlayer ? "#player-hand button" : "#cpu-hand button";
+    const currentHandAreaSelector = isPlayer ? "#player-hand" : "#cpu-hand";
+    const currentClickHandler = isPlayer ? cardPlayerClick : cardCpuClick;
+
+    while (currentDeckCards.length > 0 && document.querySelectorAll(currentHandSelector).length < 4) {
+      const currentHands = Array.from(document.querySelectorAll(currentHandSelector));
+      const newCard = currentDeckCards.shift();
+
+      const matchedCard = currentHands.find((handCard) => {
+        return Number(handCard.textContent) === newCard;
+      });
+
+      if (matchedCard) {
+        matchedCard.dataset.count = Number(matchedCard.dataset.count) + 1;
+        matchedCard.classList.add("stacked");
+      } else {
+        const newCardDraw = document.createElement("button");
+        newCardDraw.textContent = newCard;
+        newCardDraw.dataset.count = 1;
+        newCardDraw.draggable = true;
+
+        const handArea = document.querySelector(currentHandAreaSelector);
+        handArea.appendChild(newCardDraw);
+        newCardDraw.addEventListener("click", () => {
+          currentClickHandler(newCardDraw);
+        });
+
+        newCardDraw.addEventListener("dragstart", () => {
+          draggedCard = newCardDraw;
+        });
+      }
+    }
+  }
+
+  draggedCard = null;
 }
