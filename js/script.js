@@ -141,8 +141,8 @@ function cardPlayerClick(card) {
   const field2Num = Number(topField2Card.textContent);
 
   if (
-    Math.abs(cardNum - field1Num) === 1 || //引数cardNumとfield1Numの差の絶対値を求め、その値が1と等しいか、または
-    (cardNum === 1 && field1Num === 13) || //cardNumが1かつ、field1Numが13、または
+    Math.abs(cardNum - field1Num) === 1 ||
+    (cardNum === 1 && field1Num === 13) ||
     (cardNum === 13 && field1Num === 1)
   ) //cardNumが13かつ、field1Numが1である場合
   {
@@ -188,8 +188,8 @@ function cardPlayerClick(card) {
       }
     }
   } else if (
-    Math.abs(cardNum - field2Num) === 1 || //引数cardNumとfield2Numの差の絶対値を求め、その値が1と等しいか、または
-    (cardNum === 1 && field2Num === 13) || //cardNumが1かつ、field2Numが13、または
+    Math.abs(cardNum - field2Num) === 1 ||
+    (cardNum === 1 && field2Num === 13) ||
     (cardNum === 13 && field2Num === 1)
   ) //cardNumが13かつ、field2Numが1である場合
   {
@@ -249,8 +249,8 @@ function cardCpuClick(card) {
   const field2Num = Number(topField2Card.textContent);
 
   if (
-    Math.abs(cardNum - field1Num) === 1 || //引数cardNumとfield1Numの差の絶対値を求め、その値が1と等しいか、または
-    (cardNum === 1 && field1Num === 13) || //cardNumが1かつ、field1Numが13、または
+    Math.abs(cardNum - field1Num) === 1 ||
+    (cardNum === 1 && field1Num === 13) ||
     (cardNum === 13 && field1Num === 1)
   ) //cardNumが13かつ、field1Numが1である場合
   {
@@ -296,9 +296,8 @@ function cardCpuClick(card) {
       }
     }
   } else if (
-    Math.abs(cardNum - field2Num) === 1 || //引数cardNumとfield2Numの差の絶対値を求め、その値が1と等しいか、または
-    (cardNum === 1 && field2Num === 13) || //cardNumが1かつ、field2Numが13、または
-    //cardNumが13かつ、field2Numが1である場合
+    Math.abs(cardNum - field2Num) === 1 ||
+    (cardNum === 1 && field2Num === 13) ||
     (cardNum === 13 && field2Num === 1)
   ) {
     const message = document.querySelector("#message");
