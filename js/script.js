@@ -11,6 +11,8 @@ let cpuDeckCards;
 let field1Cards;
 let field2Cards;
 let isCountdownActive = false;
+let isDeadlockMode = false; // デッドロック関連: true の間、プレイヤーはfield2にルール無視でカードを出せる
+let isDeckDrawNode = false;
 
 // ==== ゲームロジック関数 ====
 function canPlayerPlay() {
@@ -64,27 +66,43 @@ function canCpuPlay() {
 }
 
 function bothCheck() {
-  if (!canPlayerPlay() && !canCpuPlay()) {
+  // 通常処理: お互い出せない間、山札が残っている限り繰り返し強制出しする
+  // (デッドロック関連: 山札が両方尽きたら自然にこのループを抜ける)
+  if (
+    !canPlayerPlay() &&
+    !canCpuPlay() &&
+    (playerDeckCards.length > 0 || cpuDeckCards.length > 0)
+  ) {
+
     const currentField1 = document.querySelectorAll("#field-1 button");
     const currentField2 = document.querySelectorAll("#field-2 button");
     const topField1Card = currentField1[currentField1.length - 1];
     const topField2Card = currentField2[currentField2.length - 1];
 
     let messageText = "お互いなし";
+    isDeckDrawMode = true;
 
-    if (playerDeckCards.length > 0) {
-      const forced1Card = playerDeckCards.shift();
-      topField2Card.textContent = forced1Card;
-      messageText += `プレイヤーの山札から${forced1Card}をfield2へ`;
-    }
+    
+    /* 通常処理: CPUの山札から1枚、field1へ強制的に出す
     if (cpuDeckCards.length > 0) {
       const forced2Card = cpuDeckCards.shift();
       topField1Card.textContent = forced2Card;
       messageText += `CPUの山札から${forced2Card}をfield1へ`;
-    }
+    } */
 
     const message = document.querySelector("#message");
     message.textContent = messageText;
+  }
+
+  // デッドロック関連: whileを抜けても誰も出せず、山札も両方尽きていたら
+  // プレイヤーがfield2に手札から自由に出せる「デッドロックモード」に入る
+  if (
+    !canPlayerPlay() &&
+    !canCpuPlay() &&
+    playerDeckCards.length === 0 &&
+    cpuDeckCards.length === 0
+  ) {
+    isDeadlockMode = true;
   }
 }
 
@@ -92,8 +110,8 @@ function handleDrop(fieldNum) {
   if (isCountdownActive) {
     return;
   }
-  const currentFieldCards = fieldNum === 1 ? field1Cards : field2Cards;
-  const topFieldCard = currentFieldCards[currentFieldCards.length - 1];
+  const currentFieldCards = fieldNum === 1 ? field1Cards : field2Cards; //field1Cardsが選ばれる
+  const topFieldCard = currentFieldCards[currentFieldCards.length - 1]; //field1の一番上
   const topFieldNum = Number(topFieldCard.textContent);
 
   const isPlayer = draggedCard.closest("#player-hand") ? true : false;
@@ -102,13 +120,35 @@ function handleDrop(fieldNum) {
   if (
     Math.abs(cardNum - topFieldNum) === 1 ||
     (cardNum === 1 && topFieldNum === 13) ||
-    (cardNum === 13 && topFieldNum === 1)
+    (cardNum === 13 && topFieldNum === 1) ||
+    (isDeadlockMode && fieldNum === 2) // デッドロック関連: field2に限りルール無視で出せる
   ) {
     const whoText = isPlayer ? "プレイヤー" : "CPU";
     const message = document.querySelector("#message");
     message.textContent = `${whoText}の手札から出した: ${draggedCard.textContent} → field${fieldNum}[${topFieldCard.textContent}]へ`;
-    topFieldCard.textContent = draggedCard.textContent;
+    topFieldCard.textContent = draggedCard.textContent; //プレイヤーのカードを場に反映
+
+    // デッドロック関連: プレイヤーが出す直前の状態を退避してから false に戻す
+    // (bothCheckの中でまたtrueになる可能性があるため、先に読んでおく
+    const wasDeadlockMode = isDeadlockMode;
+    isDeadlockMode = false;
     bothCheck();
+
+    // デッドロック関連: プレイヤーが出したのと同時に、CPUも手札からランダムに1枚
+    // ルール無視でfield1へ強制的に出す(cardClickを経由せず直接処理して再帰を避けている)
+    if (wasDeadlockMode) {
+      const cpuHandCards = Array.from(
+        document.querySelectorAll("#cpu-hand button"),
+      );
+      const chosenCard =
+        cpuHandCards[Math.floor(Math.random() * cpuHandCards.length)];
+      const currentField1 = document.querySelectorAll("#field-1 button");
+      const topField1Card = currentField1[currentField1.length - 1];
+      topField1Card.textContent = chosenCard.textContent; //CPUのカードをfield1に反映
+      chosenCard.remove();
+      refillHand(cpuDeckCards, "#cpu-hand button", "#cpu-hand");
+    }
+
     cpuAutoPlay();
     draggedCard.remove();
 
@@ -136,6 +176,8 @@ function cpuAutoPlay() {
   const topField2Card = currentField2[currentField2.length - 1];
   const field2Num = Number(topField2Card.textContent);
 
+  // 通常処理: 通常のルールで出せるカードだけを候補にする
+  // (デッドロック時の強制出しはhandleDropの中で別処理しているため、ここは常に通常ルールのみ)
   const playableCards = Array.from(currentCpuHands).filter((card) => {
     const cardNum = Number(card.textContent);
     return (
@@ -194,7 +236,8 @@ function refillHand(
       const newCardDraw = document.createElement("button");
       newCardDraw.textContent = newCard;
       newCardDraw.dataset.count = 1;
-      newCardDraw.draggable = true;
+      // プレイヤーの手札だけドラッグ可能にする(CPUの手札は操作できないようにする)
+      newCardDraw.draggable = currentHandAreaSelector === "#player-hand";
 
       const handArea = document.querySelector(currentHandAreaSelector);
       handArea.appendChild(newCardDraw);
@@ -207,7 +250,7 @@ function refillHand(
 }
 
 function cardClick(card, isPlayer) {
-  if(isCountdownActive){
+  if (isCountdownActive) {
     return;
   }
   const currentDeckCards = isPlayer ? playerDeckCards : cpuDeckCards;
@@ -260,11 +303,32 @@ function startCountdown() {
       clearInterval(timerId);
       message.textContent = "スタート！";
       isCountdownActive = false;
+      cpuAutoPlay(); // カウントダウン終了と同時に、CPUの最初の1手を始動させる
     } else {
       message.textContent = count;
       count--;
     }
   }, 1000);
+}
+
+// ==== 山札ドラッグ処理 ====
+// 山札ボタン(裏向き)の見えないデータ(dataset.value)を、山札の一番上の数字で更新する
+function updateDeckDisplay(currentDeckCards,deckSelector){
+  const deckButton = document.querySelector(deckSelector);
+  deckButton.dataset.value = currentDeckCards[0];
+}
+
+// 山札ボタン(裏向き)を1つ作って画面に追加する。プレイヤー用だけドラッグ可能にする
+function createDeckButton(currentDeckCards,deckAreaSelector){
+  const newDeckButton = document.createElement("button");
+  newDeckButton.textContent = "";
+  const deckArea = document.querySelector(deckAreaSelector);
+  deckArea.appendChild(newDeckButton);
+  updateDeckDisplay(currentDeckCards, deckAreaSelector);
+  newDeckButton.draggable = deckAreaSelector === "#player-deck";
+  newDeckButton.addEventListener("dragstart", () => {
+    draggedCard = newDeckButton;
+  });
 }
 
 // ==== ゲーム開始処理 ====
@@ -274,6 +338,8 @@ function startGame() {
   document.querySelector("#field-1").innerHTML = "";
   document.querySelector("#field-2").innerHTML = "";
   document.querySelector("#message").innerHTML = "";
+  document.querySelector("#player-deck").innerHTML = ""; // 山札ドラッグ関連: 再スタート時に山札ボタンをクリア
+  document.querySelector("#cpu-deck").innerHTML = ""; // 山札ドラッグ関連: 再スタート時に山札ボタンをクリア
 
   const deck = [];
   for (let i = 0; i < 4; i++) {
@@ -303,6 +369,7 @@ function startGame() {
   /* 手札カードを生成し、カードボタンをHTMLに追加し、4枚表示(プレイヤー)
 ===================================================================== */
   refillHand(playerDeckCards, "#player-hand button", "#player-hand");
+  createDeckButton(playerDeckCards, "#player-deck"); // 山札ドラッグ関連: プレイヤーの山札ボタンを表示
 
   /* 場2のカードボタンを作っている
 ===================================================================== */
@@ -318,6 +385,7 @@ function startGame() {
   /* 手札カードを生成し、カードボタンをHTMLに追加し、4枚表示(CPU)
 ===================================================================== */
   refillHand(cpuDeckCards, "#cpu-hand button", "#cpu-hand");
+  createDeckButton(cpuDeckCards, "#cpu-deck"); // 山札ドラッグ関連: CPUの山札ボタンを表示
 
   /* 場1のカードボタンを作っている
 ===================================================================== */
@@ -333,7 +401,6 @@ function startGame() {
 
   isCountdownActive = true;
   bothCheck();
-  cpuAutoPlay();
   startCountdown();
 }
 
