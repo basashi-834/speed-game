@@ -12,7 +12,7 @@ let field1Cards;
 let field2Cards;
 let isCountdownActive = false;
 let isDeadlockMode = false; // デッドロック関連: true の間、プレイヤーはfield2にルール無視でカードを出せる
-let isDeckDrawNode = false;
+let isDeckDrawMode = false;
 
 // ==== ゲームロジック関数 ====
 function canPlayerPlay() {
@@ -114,19 +114,21 @@ function handleDrop(fieldNum) {
   const topFieldCard = currentFieldCards[currentFieldCards.length - 1]; //field1の一番上
   const topFieldNum = Number(topFieldCard.textContent);
 
-  const isPlayer = draggedCard.closest("#player-hand") ? true : false;
+  const isPlayer = draggedCard.closest("#player-hand,#player-deck") ? true : false;
   const cardNum = Number(draggedCard.textContent);
+  const cardValue = draggedCard.closest("#player-deck") ? draggedCard.dataset.value : draggedCard.textContent;
 
   if (
     Math.abs(cardNum - topFieldNum) === 1 ||
     (cardNum === 1 && topFieldNum === 13) ||
     (cardNum === 13 && topFieldNum === 1) ||
-    (isDeadlockMode && fieldNum === 2) // デッドロック関連: field2に限りルール無視で出せる
+    (isDeadlockMode && fieldNum === 2) || // デッドロック関連: field2に限りルール無視で出せる
+    (isDeckDrawMode && fieldNum === 2)
   ) {
     const whoText = isPlayer ? "プレイヤー" : "CPU";
     const message = document.querySelector("#message");
-    message.textContent = `${whoText}の手札から出した: ${draggedCard.textContent} → field${fieldNum}[${topFieldCard.textContent}]へ`;
-    topFieldCard.textContent = draggedCard.textContent; //プレイヤーのカードを場に反映
+    message.textContent = `${whoText}の手札から出した: ${cardValue} → field${fieldNum}[${topFieldCard.textContent}]へ`;
+    topFieldCard.textContent = cardValue; //プレイヤーのカードを場に反映
 
     // デッドロック関連: プレイヤーが出す直前の状態を退避してから false に戻す
     // (bothCheckの中でまたtrueになる可能性があるため、先に読んでおく
@@ -324,7 +326,7 @@ function createDeckButton(currentDeckCards,deckAreaSelector){
   newDeckButton.textContent = "";
   const deckArea = document.querySelector(deckAreaSelector);
   deckArea.appendChild(newDeckButton);
-  updateDeckDisplay(currentDeckCards, deckAreaSelector);
+  updateDeckDisplay(currentDeckCards, deckAreaSelector + " button");
   newDeckButton.draggable = deckAreaSelector === "#player-deck";
   newDeckButton.addEventListener("dragstart", () => {
     draggedCard = newDeckButton;
