@@ -12,39 +12,29 @@ main {
   justify-content: space-around;
 }
 
-#cpu-hand button {
+#level-select {
+  display: flex;
+  justify-self: center;
+}
+
+#player-hand button,
+#cpu-hand button,
+#field-1 button,
+#field-2 button,
+#player-deck button,
+#cpu-deck button {
   max-width: 100%;
   max-height: 100%;
   min-width: 150px;
   min-height: 200px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .field-table {
   display: flex;
   justify-self: center;
-}
-
-#field-1,
-#field-2 {
-  max-width: 100%;
-  max-height: 100%;
-  min-width: 150px;
-  min-height: 200px;
-}
-
-#field-1 button,
-#field-2 button {
-  max-width: 100%;
-  max-height: 100%;
-  min-width: 150px;
-  min-height: 200px;
-}
-
-#player-hand button {
-  max-width: 100%;
-  max-height: 100%;
-  min-width: 150px;
-  min-height: 200px;
 }
 
 button {
@@ -53,4 +43,66 @@ button {
 
 .stacked {
   box-shadow: 5px 8px 0 0 #999;
+}
+
+button[data-value="1"] {
+  background-image: url(../img/card_1.png);
+}
+button[data-value="2"] {
+  background-image: url(../img/card_2.png);
+}
+button[data-value="3"] {
+  background-image: url(../img/card_3.png);
+}
+button[data-value="4"] {
+  background-image: url(../img/card_4.png);
+}
+button[data-value="5"] {
+  background-image: url(../img/card_5.png);
+}
+button[data-value="6"] {
+  background-image: url(../img/card_6.png);
+}
+button[data-value="7"] {
+  background-image: url(../img/card_7.png);
+}
+button[data-value="8"] {
+  background-image: url(../img/card_8.png);
+}
+button[data-value="9"] {
+  background-image: url(../img/card_9.png);
+}
+button[data-value="10"] {
+  background-image: url(../img/card_10.png);
+}
+button[data-value="11"] {
+  background-image: url(../img/card_11.png);
+}
+button[data-value="12"] {
+  background-image: url(../img/card_12.png);
+}
+button[data-value="13"] {
+  background-image: url(../img/card_13.png);
+}
+
+#player-deck button,
+#cpu-deck button {
+  background-color: #666;
+  background-image: url(../img/back.png);
+}
+
+#player-hand,
+#cpu-hand {
+  display: flex;
+}
+
+#cpu-area,
+#player-area {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#cpu-area h2,
+#player-area h2 {
+  width: 100%;
 }
