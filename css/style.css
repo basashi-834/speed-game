@@ -48,7 +48,7 @@ button {
 button[data-value="1"] {
   background-image: url(../img/card_1.png);
 }
-button[data-value="2"] {
+/* button[data-value="2"] {
   background-image: url(../img/card_2.png);
 }
 button[data-value="3"] {
@@ -83,7 +83,7 @@ button[data-value="12"] {
 }
 button[data-value="13"] {
   background-image: url(../img/card_13.png);
-}
+} */
 
 #player-deck button,
 #cpu-deck button {
