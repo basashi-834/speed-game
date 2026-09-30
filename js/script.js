@@ -13,6 +13,9 @@ let field_2Ref;
 let isCountdownActive = false;
 let isDeadlockMode = false; // デッドロック関連: true の間、プレイヤーはfield2にルール無視でカードを出せる
 let isDeckDrawMode = false;
+let isGameOver = false;
+let cpuTimerId = null;
+let countdownTimerId = null;
 
 // ==== ゲームロジック関数 ====
 function canPlayerPlay() {
@@ -78,7 +81,8 @@ function bothCheck() {
     const field_1Top = currentField1[currentField1.length - 1];
     const field_2Top = currentField2[currentField2.length - 1];
 
-    let messageText = "お互いなし";
+    let messageText =
+      playerDeck.length === 0 ? "手札をドラッグしよう" : "山札をドラッグしよう";
     isDeckDrawMode = true;
 
     const message = document.querySelector("#message");
@@ -94,11 +98,32 @@ function bothCheck() {
     cpuDeck.length === 0
   ) {
     isDeadlockMode = true;
+    let messageText = "手札をドラッグしよう";
+
+    const message = document.querySelector("#message");
+    message.textContent = messageText;
   }
 }
 
+function forceCpuPlayFromHand() {
+  const cpuHandCards = Array.from(
+    document.querySelectorAll("#cpu-hand button"),
+  );
+  const forcedCard =
+    cpuHandCards[Math.floor(Math.random() * cpuHandCards.length)];
+  const currentField1 = document.querySelectorAll("#field-1 button");
+  const field_1Top = currentField1[currentField1.length - 1];
+  field_1Top.textContent = forcedCard.dataset.value;
+  field_1Top.dataset.value = forcedCard.dataset.value;
+  forcedCard.remove();
+  refillHand(cpuDeck, "#cpu-hand button", "#cpu-hand");
+}
+
 function handleDrop(fieldNum) {
-  if (isCountdownActive) {
+  if (isCountdownActive || isGameOver) {
+    return;
+  }
+  if (!draggedCard) {
     return;
   }
   const targetField = fieldNum === 1 ? field_1Ref : field_2Ref; //fieldNum に応じて field_1Ref か field_2Ref のどちらかが選ばれる
@@ -117,11 +142,10 @@ function handleDrop(fieldNum) {
     (judgeNum === 1 && topFieldNum === 13) ||
     (judgeNum === 13 && topFieldNum === 1) ||
     (isDeadlockMode && fieldNum === 2) || // デッドロック関連: field2に限りルール無視で出せる
-    (isDeckDrawMode && fieldNum === 2)
+    (isDeckDrawMode &&
+      fieldNum === 2 &&
+      (isFromDeck || playerDeck.length === 0))
   ) {
-    const whoText = isPlayer ? "プレイヤー" : "CPU";
-    const message = document.querySelector("#message");
-    message.textContent = `${whoText}の手札から出した: ${displayValue} → field${fieldNum}[${dropTarget.dataset.value}]へ`;
     dropTarget.textContent = displayValue; //プレイヤーのカードを場に反映
     dropTarget.dataset.value = displayValue;
 
@@ -131,22 +155,11 @@ function handleDrop(fieldNum) {
     const wasDeckDrawMode = isDeckDrawMode;
     isDeadlockMode = false;
     isDeckDrawMode = false;
-    bothCheck();
 
     // デッドロック関連: プレイヤーが出したのと同時に、CPUも手札からランダムに1枚
     // ルール無視でfield1へ強制的に出す(playCardを経由せず直接処理して再帰を避けている)
     if (wasDeadlockMode) {
-      const cpuHandCards = Array.from(
-        document.querySelectorAll("#cpu-hand button"),
-      );
-      const forcedCard =
-        cpuHandCards[Math.floor(Math.random() * cpuHandCards.length)];
-      const currentField1 = document.querySelectorAll("#field-1 button");
-      const field_1Top = currentField1[currentField1.length - 1];
-      field_1Top.textContent = forcedCard.dataset.value; //CPUのカードをfield1に反映
-      field_1Top.dataset.value = forcedCard.dataset.value;
-      forcedCard.remove();
-      refillHand(cpuDeck, "#cpu-hand button", "#cpu-hand");
+      forceCpuPlayFromHand();
     }
 
     if (wasDeckDrawMode) {
@@ -157,30 +170,11 @@ function handleDrop(fieldNum) {
         const field_1Top = currentField1[currentField1.length - 1];
         field_1Top.textContent = forcedDeckNum;
         field_1Top.dataset.value = forcedDeckNum;
-        message.textContent += `CPUの山札から${forcedDeckNum}をfield1へ`;
-        if (cpuDeck.length > 0) {
-          updateDeckDisplay(cpuDeck, "#cpu-deck button");
-        } else {
-          document.querySelector("#cpu-deck button").remove();
-        }
-      }
-    }
-
-    cpuAutoPlay();
-    if (isFromDeck) {
-      playerDeck.shift();
-
-      if (playerDeck.length > 0) {
-        updateDeckDisplay(playerDeck, "#player-deck button");
+        updateDeckDisplay(cpuDeck, "#cpu-deck button");
       } else {
-        draggedCard.remove();
+        forceCpuPlayFromHand();
       }
     }
-
-    if (isFromDeck) {
-      return;
-    }
-    draggedCard.remove();
 
     const targetDeck = isPlayer ? playerDeck : cpuDeck;
     const handCardSelector = isPlayer
@@ -188,12 +182,23 @@ function handleDrop(fieldNum) {
       : "#cpu-hand button";
     const handAreaSelector = isPlayer ? "#player-hand" : "#cpu-hand";
 
-    refillHand(targetDeck, handCardSelector, handAreaSelector);
+    if (isFromDeck) {
+      playerDeck.shift();
+      updateDeckDisplay(playerDeck, "#player-deck button");
+    } else {
+      draggedCard.remove();
+      refillHand(targetDeck, handCardSelector, handAreaSelector);
+    }
+    bothCheck();
+    cpuAutoPlay();
+    checkWinner();
   }
+  draggedCard = null;
 }
 
 function cpuAutoPlay() {
-  if (isCountdownActive) {
+  clearTimeout(cpuTimerId);
+  if (isCountdownActive || isGameOver) {
     return;
   }
   const currentCpuHands = document.querySelectorAll("#cpu-hand button");
@@ -232,9 +237,26 @@ function cpuAutoPlay() {
 
   const settings = levelSettings[cpuLevel];
   const delay = getRandomDelay(settings.min, settings.max);
-  setTimeout(() => {
+  cpuTimerId = setTimeout(() => {
     playCard(plannedCard, false);
   }, delay);
+}
+
+function checkWinner() {
+  const message = document.querySelector("#message");
+  if (
+    document.querySelectorAll("#player-hand button").length === 0 &&
+    playerDeck.length === 0
+  ) {
+    message.textContent = `プレイヤーの勝ち！`;
+    isGameOver = true;
+  } else if (
+    document.querySelectorAll("#cpu-hand button").length === 0 &&
+    cpuDeck.length === 0
+  ) {
+    message.textContent = `CPUの勝ち！`;
+    isGameOver = true;
+  }
 }
 
 function getRandomDelay(min, max) {
@@ -282,7 +304,7 @@ function refillHand(targetDeck, handCardSelector, handAreaSelector) {
 }
 
 function playCard(card, isPlayer) {
-  if (isCountdownActive) {
+  if (isCountdownActive || isGameOver) {
     return;
   }
   const targetDeck = isPlayer ? playerDeck : cpuDeck;
@@ -290,8 +312,6 @@ function playCard(card, isPlayer) {
     ? "#player-hand button"
     : "#cpu-hand button";
   const handAreaSelector = isPlayer ? "#player-hand" : "#cpu-hand";
-  const whoText = isPlayer ? "プレイヤー" : "CPU";
-
   const cardNum = Number(card.dataset.value);
   const field_1Top = field_1Ref[field_1Ref.length - 1];
   const field1Num = Number(field_1Top.dataset.value);
@@ -304,27 +324,25 @@ function playCard(card, isPlayer) {
     (cardNum === 13 && field1Num === 1)
   ) //cardNumが13かつ、field1Numが1である場合
   {
-    const message = document.querySelector("#message");
-    message.textContent = `${whoText}の手札から出した: ${card.dataset.value} → field1[${field_1Top.dataset.value}]へ`;
     field_1Top.textContent = card.dataset.value; //場のカードを手札のカードで上書きし
     field_1Top.dataset.value = card.dataset.value;
-    bothCheck();
-    cpuAutoPlay();
     card.remove(); //cardを削除
     refillHand(targetDeck, handCardSelector, handAreaSelector);
+    bothCheck();
+    cpuAutoPlay();
+    checkWinner();
   } else if (
     Math.abs(cardNum - field2Num) === 1 ||
     (cardNum === 1 && field2Num === 13) ||
     (cardNum === 13 && field2Num === 1)
   ) {
-    const message = document.querySelector("#message");
-    message.textContent = `${whoText}の手札から出した: ${card.dataset.value} → field2[${field_2Top.dataset.value}]へ`;
     field_2Top.textContent = card.dataset.value; //場のカードを手札のカードで上書きし
     field_2Top.dataset.value = card.dataset.value;
-    bothCheck();
-    cpuAutoPlay();
     card.remove(); //cardを削除
     refillHand(targetDeck, handCardSelector, handAreaSelector);
+    bothCheck();
+    cpuAutoPlay();
+    checkWinner();
   } else {
     if (!isPlayer) {
       cpuAutoPlay();
@@ -334,11 +352,11 @@ function playCard(card, isPlayer) {
 
 function startCountdown() {
   let count = 5;
-
-  const timerId = setInterval(() => {
+  clearInterval(countdownTimerId);
+  countdownTimerId = setInterval(() => {
     const message = document.querySelector("#message");
     if (count <= 0) {
-      clearInterval(timerId);
+      clearInterval(countdownTimerId);
       message.textContent = "スタート！";
       isCountdownActive = false;
       cpuAutoPlay(); // カウントダウン終了と同時に、CPUの最初の1手を始動させる
@@ -357,6 +375,9 @@ function updateDeckDisplay(targetDeck, deckSelector) {
     return;
   }
   deckButton.dataset.value = targetDeck[0];
+  if (targetDeck.length === 0) {
+    deckButton.remove();
+  }
 }
 
 // 山札ボタン(裏向き)を1つ作って画面に追加する。プレイヤー用だけドラッグ可能にする
@@ -441,7 +462,11 @@ function startGame() {
 ===================================================================== */
   field_1Ref = document.querySelectorAll("#field-1 button");
 
+  clearTimeout(cpuTimerId);
   isCountdownActive = true;
+  isGameOver = false;
+  isDeadlockMode = false;
+  isDeckDrawMode = false;
   bothCheck();
   startCountdown();
 }
