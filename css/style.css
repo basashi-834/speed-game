@@ -113,3 +113,41 @@ button[data-value="13"] {
 #player-area h2 {
   width: 100%;
 }
+
+.placed {
+  animation: cardPlace 0.3s ease-out;
+}
+
+.shake {
+  animation: cardShake 0.3s ease-out;
+}
+
+@keyframes cardPlace {
+  0% {
+    transform: scale(1.15) rotate(-4deg);
+  }
+  60% {
+    transform: scale(0.96) rotate(2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes cardShake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+  75% {
+    transform: translateX(-3px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}

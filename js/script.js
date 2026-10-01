@@ -115,6 +115,7 @@ function forceCpuPlayFromHand() {
   const field_1Top = currentField1[currentField1.length - 1];
   field_1Top.textContent = forcedCard.dataset.value;
   field_1Top.dataset.value = forcedCard.dataset.value;
+  playPlaceAnimation(field_1Top);
   forcedCard.remove();
   refillHand(cpuDeck, "#cpu-hand button", "#cpu-hand");
 }
@@ -148,6 +149,7 @@ function handleDrop(fieldNum) {
   ) {
     dropTarget.textContent = displayValue; //プレイヤーのカードを場に反映
     dropTarget.dataset.value = displayValue;
+    playPlaceAnimation(dropTarget);
 
     // デッドロック関連: プレイヤーが出す直前の状態を退避してから false に戻す
     // (bothCheckの中でまたtrueになる可能性があるため、先に読んでおく
@@ -170,6 +172,7 @@ function handleDrop(fieldNum) {
         const field_1Top = currentField1[currentField1.length - 1];
         field_1Top.textContent = forcedDeckNum;
         field_1Top.dataset.value = forcedDeckNum;
+        playPlaceAnimation(field_1Top);
         updateDeckDisplay(cpuDeck, "#cpu-deck button");
       } else {
         forceCpuPlayFromHand();
@@ -192,6 +195,8 @@ function handleDrop(fieldNum) {
     bothCheck();
     cpuAutoPlay();
     checkWinner();
+  } else {
+    playShakeAnimation(dropTarget);
   }
   draggedCard = null;
 }
@@ -326,6 +331,7 @@ function playCard(card, isPlayer) {
   {
     field_1Top.textContent = card.dataset.value; //場のカードを手札のカードで上書きし
     field_1Top.dataset.value = card.dataset.value;
+    playPlaceAnimation(field_1Top);
     card.remove(); //cardを削除
     refillHand(targetDeck, handCardSelector, handAreaSelector);
     bothCheck();
@@ -338,6 +344,7 @@ function playCard(card, isPlayer) {
   ) {
     field_2Top.textContent = card.dataset.value; //場のカードを手札のカードで上書きし
     field_2Top.dataset.value = card.dataset.value;
+    playPlaceAnimation(field_2Top);
     card.remove(); //cardを削除
     refillHand(targetDeck, handCardSelector, handAreaSelector);
     bothCheck();
@@ -391,6 +398,28 @@ function createDeckButton(targetDeck, deckAreaSelector) {
   newDeckButton.addEventListener("dragstart", () => {
     draggedCard = newDeckButton;
   });
+}
+
+function playPlaceAnimation(button) {
+  button.classList.add("placed");
+  button.addEventListener(
+    "animationend",
+    () => {
+      button.classList.remove("placed");
+    },
+    { once: true },
+  );
+}
+
+function playShakeAnimation(button) {
+  button.classList.add("shake");
+  button.addEventListener(
+    "animationend",
+    () => {
+      button.classList.remove("shake");
+    },
+    { once: true },
+  );
 }
 
 // ==== ゲーム開始処理 ====
