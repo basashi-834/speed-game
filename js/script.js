@@ -71,6 +71,7 @@ function canCpuPlay() {
 function bothCheck() {
   // 通常処理: お互い出せない間、山札が残っている限り繰り返し強制出しする
   // (デッドロック関連: 山札が両方尽きたら自然にこのループを抜ける)
+  document.querySelector("#message").innerHTML = "";
   if (
     !canPlayerPlay() &&
     !canCpuPlay() &&

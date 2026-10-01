@@ -2,6 +2,7 @@
   margin: 0;
   padding: 0;
   background-color: #007a43;
+  color: #fff;
 }
 
 h1 {
@@ -31,6 +32,7 @@ main {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+  color: #000000;
 }
 
 .field-table {
@@ -55,42 +57,42 @@ button {
 button[data-value="1"] {
   background-image: url(../img/card_1.png);
 }
-/* button[data-value="2"] {
-  background-image: url(../img/card_2.png);
+button[data-value="2"] {
+  background-image: url(../img/card_1.png);
 }
 button[data-value="3"] {
-  background-image: url(../img/card_3.png);
+  background-image: url(../img/card_1.png);
 }
 button[data-value="4"] {
-  background-image: url(../img/card_4.png);
+  background-image: url(../img/card_1.png);
 }
 button[data-value="5"] {
-  background-image: url(../img/card_5.png);
+  background-image: url(../img/card_1.png);
 }
 button[data-value="6"] {
-  background-image: url(../img/card_6.png);
+  background-image: url(../img/card_1.png);
 }
 button[data-value="7"] {
-  background-image: url(../img/card_7.png);
+  background-image: url(../img/card_1.png);
 }
 button[data-value="8"] {
-  background-image: url(../img/card_8.png);
+  background-image: url(../img/card_1.png);
 }
 button[data-value="9"] {
-  background-image: url(../img/card_9.png);
+  background-image: url(../img/card_1.png);
 }
 button[data-value="10"] {
-  background-image: url(../img/card_10.png);
+  background-image: url(../img/card_1.png);
 }
 button[data-value="11"] {
-  background-image: url(../img/card_11.png);
+  background-image: url(../img/card_1.png);
 }
 button[data-value="12"] {
-  background-image: url(../img/card_12.png);
+  background-image: url(../img/card_1.png);
 }
 button[data-value="13"] {
-  background-image: url(../img/card_13.png);
-} */
+  background-image: url(../img/card_1.png);
+}
 
 #player-deck button,
 #cpu-deck button {
