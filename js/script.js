@@ -16,6 +16,7 @@ let isDeckDrawMode = false;
 let isGameOver = false;
 let cpuTimerId = null;
 let countdownTimerId = null;
+let messageResetTimerId = null;
 
 // ==== ゲームロジック関数 ====
 function canPlayerPlay() {
@@ -117,7 +118,7 @@ function forceCpuPlayFromHand() {
   field_1Top.textContent = forcedCard.dataset.value;
   field_1Top.dataset.value = forcedCard.dataset.value;
   playPlaceAnimation(field_1Top);
-  forcedCard.remove();
+  forcedCard.parentElement.remove();
   refillHand(cpuDeck, "#cpu-hand button", "#cpu-hand");
 }
 
@@ -190,7 +191,7 @@ function handleDrop(fieldNum) {
       playerDeck.shift();
       updateDeckDisplay(playerDeck, "#player-deck button");
     } else {
-      draggedCard.remove();
+      draggedCard.parentElement.remove();
       refillHand(targetDeck, handCardSelector, handAreaSelector);
     }
     bothCheck();
@@ -256,12 +257,14 @@ function checkWinner() {
   ) {
     message.textContent = `プレイヤーの勝ち！`;
     isGameOver = true;
+    document.querySelector("#level-select").style.display = "flex";
   } else if (
     document.querySelectorAll("#cpu-hand button").length === 0 &&
     cpuDeck.length === 0
   ) {
     message.textContent = `CPUの勝ち！`;
     isGameOver = true;
+    document.querySelector("#level-select").style.display = "flex";
   }
 }
 
@@ -293,6 +296,9 @@ function refillHand(targetDeck, handCardSelector, handAreaSelector) {
       matchedCard.classList.add("stacked");
     } else {
       const newCardDraw = document.createElement("button");
+      const cardSlot = document.createElement("div");
+      cardSlot.appendChild(newCardDraw);
+
       newCardDraw.textContent = newCard;
       newCardDraw.dataset.count = 1;
       newCardDraw.dataset.value = newCard;
@@ -300,7 +306,7 @@ function refillHand(targetDeck, handCardSelector, handAreaSelector) {
       newCardDraw.draggable = handAreaSelector === "#player-hand";
 
       const handArea = document.querySelector(handAreaSelector);
-      handArea.appendChild(newCardDraw);
+      handArea.appendChild(cardSlot);
 
       newCardDraw.addEventListener("dragstart", () => {
         draggedCard = newCardDraw;
@@ -333,7 +339,7 @@ function playCard(card, isPlayer) {
     field_1Top.textContent = card.dataset.value; //場のカードを手札のカードで上書きし
     field_1Top.dataset.value = card.dataset.value;
     playPlaceAnimation(field_1Top);
-    card.remove(); //cardを削除
+    card.parentElement.remove();
     refillHand(targetDeck, handCardSelector, handAreaSelector);
     bothCheck();
     cpuAutoPlay();
@@ -346,7 +352,7 @@ function playCard(card, isPlayer) {
     field_2Top.textContent = card.dataset.value; //場のカードを手札のカードで上書きし
     field_2Top.dataset.value = card.dataset.value;
     playPlaceAnimation(field_2Top);
-    card.remove(); //cardを削除
+    card.parentElement.remove();
     refillHand(targetDeck, handCardSelector, handAreaSelector);
     bothCheck();
     cpuAutoPlay();
@@ -368,6 +374,9 @@ function startCountdown() {
       message.textContent = "スタート！";
       isCountdownActive = false;
       cpuAutoPlay(); // カウントダウン終了と同時に、CPUの最初の1手を始動させる
+      messageResetTimerId = setTimeout(() => {
+        bothCheck();
+      }, 1000);
     } else {
       message.textContent = count;
       count--;
@@ -493,11 +502,11 @@ function startGame() {
   field_1Ref = document.querySelectorAll("#field-1 button");
 
   clearTimeout(cpuTimerId);
+  clearTimeout(messageResetTimerId);
   isCountdownActive = true;
   isGameOver = false;
   isDeadlockMode = false;
   isDeckDrawMode = false;
-  bothCheck();
   startCountdown();
 }
 
@@ -507,6 +516,7 @@ const levelButtons = document.querySelectorAll("#level-select button");
 levelButtons.forEach((button) => {
   button.addEventListener("click", () => {
     cpuLevel = button.textContent;
+    document.querySelector("#level-select").style.display = "none";
     startGame();
   });
 });
