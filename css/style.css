@@ -81,43 +81,43 @@ button {
 }
 
 button[data-value="1"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_1.png);
 }
 button[data-value="2"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_2.png);
 }
 button[data-value="3"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_3.png);
 }
 button[data-value="4"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_4.png);
 }
 button[data-value="5"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_5.png);
 }
 button[data-value="6"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_6.png);
 }
 button[data-value="7"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_7.png);
 }
 button[data-value="8"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_8.png);
 }
 button[data-value="9"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_9.png);
 }
 button[data-value="10"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_0.png);
 }
 button[data-value="11"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_0.png);
 }
 button[data-value="12"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_0.png);
 }
 button[data-value="13"] {
-  background-image: url(../img/card_1.png);
+  background-image: url(../img/card/card_0.png);
 }
 
 #player-deck button,
