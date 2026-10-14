@@ -77,7 +77,7 @@ button {
 }
 
 .stacked {
-  filter: drop-shadow(1px 1px 0 #797979) drop-shadow(3px 3px 0 #c2c2c2);
+  filter: drop-shadow(2px 2px 0 #797979) drop-shadow(3px 3px 0 #c2c2c2);
 }
 
 button[data-value="1"] {
@@ -123,7 +123,11 @@ button[data-value="13"] {
 #player-deck button,
 #cpu-deck button {
   background-color: #666;
-  background-image: url(../img/back.png);
+  filter: drop-shadow(1px 1px 0 #797979) drop-shadow(1px 1px 0 #c2c2c2)
+    drop-shadow(1px 1px 0 #797979) drop-shadow(1px 1px 0 #c2c2c2)
+    drop-shadow(1px 1px 0 #797979) drop-shadow(1px 1px 0 #c2c2c2)
+    drop-shadow(1px 1px 0 #797979);
+  background-image: url(../img/card/back.png);
 }
 
 #player-hand,
